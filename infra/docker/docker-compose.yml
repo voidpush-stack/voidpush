@@ -1,0 +1,41 @@
+version: "3.9"
+services:
+  web:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.web
+    ports: ["3000:3000"]
+    environment:
+      - RELAY_API_URL=http://relay:8000
+      - SCORE_ENGINE_URL=http://score-engine:8001
+
+  score-engine:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.score-engine
+    ports: ["8001:8001"]
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://ghost:ghost@postgres:5432/ghost_scores
+    depends_on: [postgres]
+
+  relay:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.relay
+    ports: ["8000:8000"]
+    environment:
+      - RELAY_ID=R-local
+      - RELAY_REGION=local
+      - RELAY_PRIVATE_KEY=${RELAY_PRIVATE_KEY}
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ghost
+      POSTGRES_PASSWORD: ghost  # dev default — override in prod via .env
+      POSTGRES_DB: ghost_scores
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    ports: ["5432:5432"]
+
+volumes:
+  postgres_data:

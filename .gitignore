@@ -1,0 +1,100 @@
+# ─── Node / pnpm ──────────────────────────────────────────────────────────────
+node_modules/
+.next/
+dist/
+.turbo/
+*.tsbuildinfo
+.pnpm-store/
+
+# ─── Rust / Cargo ─────────────────────────────────────────────────────────────
+target/
+# NOTE: Cargo.lock IS committed for binary crates (CLI, relay)
+# Do NOT add Cargo.lock here
+
+# ─── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+.hatch/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+*.egg-info/
+
+# ─── Env / Secrets — NEVER commit these ───────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p12
+*.pfx
+*.secret
+*.secrets
+.secrets/
+secrets/
+
+# ─── Ghost identity — NEVER commit ────────────────────────────────────────────
+.vpush/
+**/zk-root
+**/identity.toml
+
+# ─── Relay private keys ───────────────────────────────────────────────────────
+relay-private*.hex
+private*.hex
+
+# ─── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ─── IDE ──────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+
+# ─── Infra — state files contain secrets ──────────────────────────────────────
+infra/terraform/.terraform/
+infra/terraform/.terraform.lock.hcl
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.backup
+infra/terraform/*.tfvars
+infra/terraform/override.tf
+infra/terraform/override.tf.json
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+*.log.*
+logs/
+/var/log/
+
+# ─── Build outputs ────────────────────────────────────────────────────────────
+*.wasm
+apps/vscode-extension/dist/
+apps/vscode-extension/*.vsix
+
+# ─── Test artifacts ───────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+junit.xml
+test-results/
+
+# ─── Database ─────────────────────────────────────────────────────────────────
+*.sqlite
+*.sqlite3
+*.db
+
+# ─── Docker ───────────────────────────────────────────────────────────────────
+# (Dockerfiles are committed — only ignore generated artifacts)
+infra/docker/.env

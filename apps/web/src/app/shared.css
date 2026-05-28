@@ -1,0 +1,6 @@
+.s-tag { font-size:.63rem; letter-spacing:.2em; text-transform:uppercase; color:var(--ghost); margin-bottom:1rem; display:flex; align-items:center; gap:.75rem; }
+.s-tag::before { content:''; width:24px; height:1px; background:var(--ghost); }
+.s-title { font-family:var(--display); font-size:clamp(2rem,4vw,3.5rem); font-weight:800; letter-spacing:-.03em; line-height:1; margin-bottom:1rem; }
+.s-desc { color:var(--muted); max-width:480px; line-height:1.9; font-size:.82rem; }
+.footer-link { color:var(--muted); text-decoration:none; transition:color .2s; }
+.footer-link:hover { color:var(--ghost); }

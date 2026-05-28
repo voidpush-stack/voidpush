@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ─── Web (Next.js) ──────────────────────────────────────────────────
+  web:
+    name: Web app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @voidpush/web typecheck
+      - run: pnpm --filter @voidpush/web lint
+      - run: pnpm --filter @voidpush/web build
+
+  # ─── CLI + Relay (Rust) ─────────────────────────────────────────────
+  rust:
+    name: Rust (CLI + Relay)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --check
+      - run: cargo clippy -- -D warnings
+      - run: cargo build --release
+      - run: cargo test
+
+  # ─── Score Engine (Python) ──────────────────────────────────────────
+  score-engine:
+    name: Score Engine
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/score-engine
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ghost
+          POSTGRES_PASSWORD: ghost
+          POSTGRES_DB: ghost_scores_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install hatch
+      - run: hatch run lint
+      - run: hatch run types
+      - run: hatch run test
+        env:
+          DATABASE_URL: postgresql+asyncpg://ghost:ghost@localhost:5432/ghost_scores_test
+
+  # ─── Release binaries ───────────────────────────────────────────────
+  release:
+    name: Release binaries
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [web, rust, score-engine]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest   target: x86_64-unknown-linux-gnu
+          - os: macos-latest    target: aarch64-apple-darwin
+          - os: windows-latest  target: x86_64-pc-windows-msvc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with: { targets: "${{ matrix.target }}" }
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --release --target ${{ matrix.target }} -p vpush
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ghost-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/ghost*

@@ -1,0 +1,30 @@
+{
+  "name": "@voidpush/ui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared React UI components for VoidPush",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./terminal": "./src/components/Terminal.tsx",
+    "./live-feed": "./src/components/LiveFeed.tsx",
+    "./relay-map": "./src/components/RelayMap.tsx",
+    "./score-badge": "./src/components/ScoreBadge.tsx"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "dependencies": {
+    "@voidpush/types": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/react": "^18.3.0"
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "name": "voidpush",
+  "displayName": "VoidPush",
+  "description": "Anonymous git contributions from VS Code — void push, void pr, void score",
+  "version": "0.1.0",
+  "publisher": "voidpush",
+  "icon": "assets/icon.png",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/voidpush/voidpush"
+  },
+  "engines": {
+    "vscode": "^1.88.0"
+  },
+  "categories": [
+    "SCM Providers",
+    "Other"
+  ],
+  "keywords": ["git", "anonymous", "privacy", "vpush", "voidpush"],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "voidpush.init",
+        "title": "Ghost: Init — Generate ephemeral identity",
+        "icon": "$(key)"
+      },
+      {
+        "command": "voidpush.push",
+        "title": "Ghost: Push anonymously",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "voidpush.score",
+        "title": "Ghost: Check quality score",
+        "icon": "$(star)"
+      },
+      {
+        "command": "voidpush.status",
+        "title": "Ghost: Show identity status",
+        "icon": "$(person)"
+      },
+      {
+        "command": "voidpush.expire",
+        "title": "Ghost: Expire identity",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "voidpush.openDocs",
+        "title": "Ghost: Open documentation",
+        "icon": "$(book)"
+      }
+    ],
+    "menus": {
+      "scm/title": [
+        {
+          "command": "voidpush.push",
+          "group": "navigation",
+          "when": "scmProvider == git"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "voidpush.status",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "VoidPush",
+      "properties": {
+        "voidpush.cliPath": {
+          "type": "string",
+          "default": "vpush",
+          "description": "Path to the ghost CLI binary"
+        },
+        "voidpush.defaultBranch": {
+          "type": "string",
+          "default": "main",
+          "description": "Default branch for void push"
+        },
+        "voidpush.defaultHops": {
+          "type": "number",
+          "default": 3,
+          "minimum": 3,
+          "maximum": 9,
+          "description": "Default number of relay hops"
+        },
+        "voidpush.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show ghost identity status in the status bar"
+        },
+        "voidpush.autoExpireWarning": {
+          "type": "boolean",
+          "default": true,
+          "description": "Warn when identity is expiring soon"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "voidpush",
+          "title": "VoidPush",
+          "icon": "assets/ghost-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "voidpush": [
+        {
+          "id": "voidpush.identityView",
+          "name": "Identity",
+          "when": "voidpush.active"
+        },
+        {
+          "id": "voidpush.scoreView",
+          "name": "Scores",
+          "when": "voidpush.active"
+        },
+        {
+          "id": "voidpush.relayView",
+          "name": "Relay Network",
+          "when": "voidpush.active"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run build",
+    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify",
+    "dev": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --watch",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.88.0",
+    "esbuild": "^0.21.0",
+    "typescript": "^5.4.0"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "voidpush-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Anonymous code contribution network — monorepo root",
+  "workspaces": [
+    "apps/web",
+    "packages/@voidpush/types",
+    "packages/@voidpush/ui",
+    "packages/@voidpush/crypto"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "web": "pnpm --filter @voidpush/web dev",
+    "score-engine": "pnpm --filter @voidpush/score-engine dev"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0",
+    "eslint": "^9.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "prettier": "^3.2.0"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}
