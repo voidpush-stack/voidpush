@@ -1,12 +1,12 @@
 use anyhow::{bail, Context as _, Result};
-use clap::Args;
+use clap::Args as ClapArgs;
 use colored::Colorize;
 use dialoguer::Confirm;
 use zeroize::Zeroize;
 
 use crate::{commands::Context, identity::Identity};
 
-#[derive(Args, Debug)]
+#[derive(ClapArgs, Debug)]
 pub struct Args {
     /// Skip confirmation prompt
     #[arg(long, short = 'f')]
@@ -18,8 +18,7 @@ pub struct Args {
 }
 
 pub async fn run(args: Args, _ctx: Context) -> Result<()> {
-    let identity = Identity::load()
-        .context("No identity to expire. Run `void init` first.")?;
+    let identity = Identity::load().context("No identity to expire. Run `void init` first.")?;
 
     println!(
         "{} This will permanently destroy {}",
@@ -50,16 +49,14 @@ pub async fn run(args: Args, _ctx: Context) -> Result<()> {
     println!("  Wiping ~/.vpush/identity...");
 
     // 3-pass secure wipe
-    identity.secure_wipe(args.preserve_zk)
+    identity
+        .secure_wipe(args.preserve_zk)
         .context("Failed to wipe identity")?;
 
     println!("  Wiping ~/.vpush/relay-cache...");
     wipe_relay_cache().context("Failed to wipe relay cache")?;
 
-    println!(
-        "{} Identity destroyed — you are now anonymous",
-        "✓".green()
-    );
+    println!("{} Identity destroyed — you are now anonymous", "✓".green());
     println!();
     println!("  Run {} to become a new ghost", "void init".yellow());
 

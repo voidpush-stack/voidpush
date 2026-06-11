@@ -1,10 +1,10 @@
 use anyhow::{Context as _, Result};
-use clap::Args;
+use clap::Args as ClapArgs;
 use colored::Colorize;
 
 use crate::{commands::Context, identity::Identity};
 
-#[derive(Args, Debug)]
+#[derive(ClapArgs, Debug)]
 pub struct Args {
     #[arg(long, default_value = "72", value_name = "HOURS")]
     pub ttl: u32,
@@ -37,7 +37,10 @@ pub async fn run(args: Args, ctx: Context) -> Result<()> {
     let identity = Identity::generate(args.ttl, args.persist, region, args.link, None)
         .context("Failed to generate identity")?;
 
-    println!("{} Keypair generated (stored: ~/.vpush/identity)", "✓".green());
+    println!(
+        "{} Keypair generated (stored: ~/.vpush/identity)",
+        "✓".green()
+    );
     println!("  Setting TTL: {} hours", args.ttl);
     println!("{} Identity: {}", "✓".green(), identity.id.cyan());
 
@@ -52,7 +55,9 @@ pub async fn run(args: Args, ctx: Context) -> Result<()> {
     if !args.persist {
         println!(
             "{} Identity auto-expires in {}h. Use {} to extend.",
-            "⚠ ".yellow(), args.ttl, "--persist".yellow()
+            "⚠ ".yellow(),
+            args.ttl,
+            "--persist".yellow()
         );
     }
 

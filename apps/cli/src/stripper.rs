@@ -10,7 +10,10 @@ pub struct Stripper<'a> {
 
 impl<'a> Stripper<'a> {
     pub fn new(identity: &'a Identity, strip_timestamps: bool) -> Self {
-        Self { identity, strip_timestamps }
+        Self {
+            identity,
+            strip_timestamps,
+        }
     }
 
     /// Strip all author/committer metadata from unpushed commits.
@@ -20,13 +23,10 @@ impl<'a> Stripper<'a> {
         let mut revwalk = repo.revwalk()?;
         revwalk.push_head()?;
 
-        let anon_name  = self.identity.id.clone();
+        let anon_name = self.identity.id.clone();
         let anon_email = "anon@voidpush.null".to_string();
 
-        let oids: Vec<git2::Oid> = revwalk
-            .filter_map(|r| r.ok())
-            .take(100)
-            .collect();
+        let oids: Vec<git2::Oid> = revwalk.filter_map(|r| r.ok()).take(100).collect();
 
         for oid in &oids {
             let commit = repo.find_commit(*oid)?;
@@ -42,9 +42,7 @@ impl<'a> Stripper<'a> {
                 Signature::new(&anon_name, &anon_email, &commit.author().when())?
             };
 
-            let parents: Vec<git2::Commit> = commit
-                .parents()
-                .collect();
+            let parents: Vec<git2::Commit> = commit.parents().collect();
             let parent_refs: Vec<&git2::Commit> = parents.iter().collect();
 
             repo.commit(

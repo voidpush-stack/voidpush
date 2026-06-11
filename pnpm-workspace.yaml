@@ -1,4 +1,4 @@
 packages:
-  - 'apps/*'
-  - 'packages/*'
+  - 'apps/web'
+  - 'apps/mcp-server'
   - 'packages/@voidpush/*'

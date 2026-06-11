@@ -1,11 +1,11 @@
 use anyhow::{Context as _, Result};
-use clap::Args;
+use clap::Args as ClapArgs;
 use colored::Colorize;
 use rand::Rng;
 
 use crate::{commands::Context, identity::Identity};
 
-#[derive(Args, Debug)]
+#[derive(ClapArgs, Debug)]
 pub struct Args {
     /// Number of invite links to generate (max 5)
     #[arg(long, default_value = "1", value_parser = clap::value_parser!(u8).range(1..=5))]
@@ -21,14 +21,21 @@ pub struct Args {
 }
 
 pub async fn run(args: Args, ctx: Context) -> Result<()> {
-    let identity = Identity::load()
-        .context("No identity found. Run `void init` first.")?;
+    let identity = Identity::load().context("No identity found. Run `void init` first.")?;
 
     if identity.is_expired() {
-        anyhow::bail!("Identity expired. Run {} && {}", "void expire".yellow(), "void init".yellow());
+        anyhow::bail!(
+            "Identity expired. Run {} && {}",
+            "void expire".yellow(),
+            "void init".yellow()
+        );
     }
 
-    println!("  Generating {} invite link{}...", args.count, if args.count > 1 { "s" } else { "" });
+    println!(
+        "  Generating {} invite link{}...",
+        args.count,
+        if args.count > 1 { "s" } else { "" }
+    );
 
     if ctx.dry_run {
         println!("  {} dry-run — skipping invite generation", "→".dimmed());
@@ -39,7 +46,7 @@ pub async fn run(args: Args, ctx: Context) -> Result<()> {
 
     for i in 0..args.count {
         let code = generate_invite_code(&identity.id, args.ttl);
-        let url  = format!("https://voidpush.dev/waitlist?invite={}", code);
+        let url = format!("https://voidpush.dev/waitlist?invite={}", code);
 
         println!("{} Invite {}/{}", "✓".green(), i + 1, args.count);
         println!("  Code : {}", code.cyan());

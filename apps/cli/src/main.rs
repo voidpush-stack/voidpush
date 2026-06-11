@@ -8,15 +8,15 @@ mod identity;
 mod relay_client;
 mod stripper;
 
-use commands::{clone, expire, init, invite, pr, push, relay, score, verify};
+use commands::{clone, expire, init, invite, org, pr, push, relay, score, verify};
 
 #[derive(Parser)]
 #[command(
     name = "vpush",
-    version = "0.1.0",
-    about = "Anonymous git wrapper — VoidPush",
-    long_about = "ghost is a thin wrapper around git that strips identity metadata\nfrom every operation and routes traffic through an anonymous relay chain.\n\nYour code speaks. Your identity doesn't.",
-    after_help = "Run 'ghost <command> --help' for command-specific flags.\nDocs: https://voidpush.dev/docs"
+    version = "1.0.0",
+    about = "VoidPush — anonymous git wrapper",
+    long_about = "vpush strips identity metadata from every git operation\nand routes traffic through an anonymous relay chain.\n\nYour code speaks. Your identity doesn't.",
+    after_help = "Run 'vpush <command> --help' for command-specific flags.\nDocs: https://voidpush.dev/docs"
 )]
 struct Cli {
     #[command(subcommand)]
@@ -40,7 +40,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Generate a new ephemeral identity
+    /// Generate a new ephemeral identity (72h TTL)
     Init(init::Args),
     /// Push commits anonymously through relay chain
     Push(push::Args),
@@ -54,10 +54,12 @@ enum Commands {
     Relay(relay::Args),
     /// Immediately destroy current identity (3-pass wipe)
     Expire(expire::Args),
-    /// Generate one-time-use invite links for other ghosts
+    /// Generate one-time invite links
     Invite(invite::Args),
     /// Generate ZK proof of past contributions
     Verify(verify::Args),
+    /// Org anonymity pool management
+    Org(org::Args),
 }
 
 #[tokio::main]
@@ -72,34 +74,31 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     let ctx = commands::Context {
-        verbose:     cli.verbose,
-        dry_run:     cli.dry_run,
+        verbose: cli.verbose,
+        dry_run: cli.dry_run,
         force_relay: cli.relay,
-        no_zk:       cli.no_zk,
+        no_zk: cli.no_zk,
         config_path: cli.config,
     };
 
-    // TTL warning on every command except init/expire
     match &cli.command {
         Commands::Init(_) | Commands::Expire(_) => {}
-        _ => daemon::check_ttl_warn(),
-    }
-
-    // Spawn auto-expire background daemon
-    match &cli.command {
-        Commands::Init(_) | Commands::Expire(_) => {}
-        _ => daemon::spawn_daemon(),
+        _ => {
+            daemon::check_ttl_warn();
+            daemon::spawn_daemon();
+        }
     }
 
     match cli.command {
-        Commands::Init(args)   => init::run(args, ctx).await,
-        Commands::Push(args)   => push::run(args, ctx).await,
-        Commands::Clone(args)  => clone::run(args, ctx).await,
-        Commands::Pr(args)     => pr::run(args, ctx).await,
-        Commands::Score(args)  => score::run(args, ctx).await,
-        Commands::Relay(args)  => relay::run(args, ctx).await,
+        Commands::Init(args) => init::run(args, ctx).await,
+        Commands::Push(args) => push::run(args, ctx).await,
+        Commands::Clone(args) => clone::run(args, ctx).await,
+        Commands::Pr(args) => pr::run(args, ctx).await,
+        Commands::Score(args) => score::run(args, ctx).await,
+        Commands::Relay(args) => relay::run(args, ctx).await,
         Commands::Expire(args) => expire::run(args, ctx).await,
         Commands::Invite(args) => invite::run(args, ctx).await,
         Commands::Verify(args) => verify::run(args, ctx).await,
+        Commands::Org(args) => org::run(args, ctx).await,
     }
 }

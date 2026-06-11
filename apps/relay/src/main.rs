@@ -10,9 +10,9 @@ use tracing::info;
 use tracing_subscriber::{fmt, EnvFilter};
 
 mod config;
-mod onion;
 mod forwarder;
 mod handlers;
+mod onion;
 mod state;
 
 use state::AppState;
@@ -20,8 +20,7 @@ use state::AppState;
 #[tokio::main]
 async fn main() -> Result<()> {
     fmt()
-        .with_env_filter(EnvFilter::from_default_env()
-            .add_directive("void_relay=info".parse()?))
+        .with_env_filter(EnvFilter::from_default_env().add_directive("void_relay=info".parse()?))
         .with_target(false)
         .init();
 
@@ -30,12 +29,12 @@ async fn main() -> Result<()> {
 
     let app = Router::new()
         // Health check
-        .route("/health",          get(handlers::health))
+        .route("/health", get(handlers::health))
         // Relay endpoints
-        .route("/relay/forward",   post(handlers::forward))
-        .route("/relay/info",      get(handlers::relay_info))
+        .route("/relay/forward", post(handlers::forward))
+        .route("/relay/info", get(handlers::relay_info))
         // Registry ping
-        .route("/relay/ping",      get(handlers::ping))
+        .route("/relay/ping", get(handlers::ping))
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())
         .with_state(state);

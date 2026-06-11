@@ -24,10 +24,8 @@ pub enum NodeType {
 impl Config {
     pub fn from_env() -> Result<Self> {
         Ok(Config {
-            relay_id: std::env::var("RELAY_ID")
-                .unwrap_or_else(|_| "R0".to_string()),
-            region: std::env::var("RELAY_REGION")
-                .unwrap_or_else(|_| "eu".to_string()),
+            relay_id: std::env::var("RELAY_ID").unwrap_or_else(|_| "R0".to_string()),
+            region: std::env::var("RELAY_REGION").unwrap_or_else(|_| "eu".to_string()),
             port: std::env::var("PORT")
                 .unwrap_or_else(|_| "8000".to_string())
                 .parse()

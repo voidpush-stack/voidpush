@@ -1,10 +1,10 @@
 use anyhow::{Context as _, Result};
-use clap::Args;
+use clap::Args as ClapArgs;
 use colored::Colorize;
 
 use crate::{commands::Context, identity::Identity, relay_client::RelayClient};
 
-#[derive(Args, Debug)]
+#[derive(ClapArgs, Debug)]
 pub struct Args {
     /// Repository URL (void://org/repo)
     pub url: String,
@@ -22,19 +22,22 @@ pub struct Args {
 }
 
 pub async fn run(args: Args, ctx: Context) -> Result<()> {
-    let _identity = Identity::load()
-        .context("No identity found. Run `void init` first.")?;
+    let _identity = Identity::load().context("No identity found. Run `void init` first.")?;
 
     println!("  Routing clone through relay chain...");
 
     let relay_client = RelayClient::new(ctx.force_relay.as_deref());
-    let chain = relay_client.build_chain(3).await
+    let chain = relay_client
+        .build_chain(3)
+        .await
         .context("Failed to build relay chain")?;
 
     let hops: Vec<&str> = chain.hops.iter().map(|h| h.city.as_str()).collect();
     println!("{} Connected via {}", "✓".green(), hops.join(" → ").cyan());
 
-    let target_dir = args.directory.as_deref()
+    let target_dir = args
+        .directory
+        .as_deref()
         .unwrap_or_else(|| args.url.split('/').last().unwrap_or("repo"));
 
     println!("  Cloning {}...", args.url.cyan());
@@ -45,8 +48,15 @@ pub async fn run(args: Args, ctx: Context) -> Result<()> {
     }
 
     // TODO: route actual git clone through relay chain
-    println!("{} Cloned to ./{} (14 commits, 3 branches)", "✓".green(), target_dir);
-    println!("{} Anonymous committer configured for this repo", "✓".green());
+    println!(
+        "{} Cloned to ./{} (14 commits, 3 branches)",
+        "✓".green(),
+        target_dir
+    );
+    println!(
+        "{} Anonymous committer configured for this repo",
+        "✓".green()
+    );
 
     Ok(())
 }

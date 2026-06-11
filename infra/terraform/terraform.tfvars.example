@@ -1,0 +1,26 @@
+# VoidPush relay network — Terraform variables template
+# Copy to terraform.tfvars (gitignored) and fill in values
+# NEVER commit terraform.tfvars to git
+
+# ─── API tokens ───────────────────────────────────────────────────────────────
+hcloud_token = "REPLACE_WITH_HETZNER_TOKEN"
+do_token     = "REPLACE_WITH_DIGITALOCEAN_TOKEN"
+
+# ─── SSH key ──────────────────────────────────────────────────────────────────
+# Generate: ssh-keygen -t ed25519 -C "voidpush-relay" -f ~/.ssh/voidpush_relay
+ssh_public_key = "ssh-ed25519 AAAA... voidpush-relay"
+
+# ─── Relay private keys ───────────────────────────────────────────────────────
+# Generate each: openssl rand -hex 32
+# Store securely — loss means relay must be re-keyed
+relay_private_keys = {
+  R1 = "REPLACE_R1_KEY"
+  R2 = "REPLACE_R2_KEY"
+  R3 = "REPLACE_R3_KEY"
+  R4 = "REPLACE_R4_KEY"
+  R5 = "REPLACE_R5_KEY"
+  R6 = "REPLACE_R6_KEY"
+  R7 = "REPLACE_R7_KEY"
+  R8 = "REPLACE_R8_KEY"
+  R9 = "REPLACE_R9_KEY"
+}

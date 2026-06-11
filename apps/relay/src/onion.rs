@@ -8,7 +8,6 @@
 ///   2. Reads the next-hop address from the inner header
 ///   3. Forwards the remaining ciphertext to the next relay
 ///   4. The final relay pushes to the real git remote
-
 use anyhow::{bail, Context, Result};
 use chacha20poly1305::{
     aead::{Aead, KeyInit},
@@ -57,19 +56,15 @@ pub fn peel_layer(packet: &OnionPacket, our_private_key: &StaticSecret) -> Resul
         .map_err(|_| anyhow::anyhow!("Decryption failed — wrong key or corrupted packet"))?;
 
     // Deserialize inner layer
-    let inner: InnerLayer = serde_json::from_slice(&plaintext)
-        .context("Failed to deserialize inner layer")?;
+    let inner: InnerLayer =
+        serde_json::from_slice(&plaintext).context("Failed to deserialize inner layer")?;
 
     Ok(inner)
 }
 
 /// Wrap a payload in one onion layer (used by CLI, not relay)
-pub fn wrap_layer(
-    inner: &InnerLayer,
-    recipient_pubkey: &PublicKey,
-) -> Result<OnionPacket> {
-    let plaintext = serde_json::to_vec(inner)
-        .context("Failed to serialize inner layer")?;
+pub fn wrap_layer(inner: &InnerLayer, recipient_pubkey: &PublicKey) -> Result<OnionPacket> {
+    let plaintext = serde_json::to_vec(inner).context("Failed to serialize inner layer")?;
 
     // Generate ephemeral keypair for this layer
     let ephemeral_secret = EphemeralSecret::random_from_rng(rand::rngs::OsRng);

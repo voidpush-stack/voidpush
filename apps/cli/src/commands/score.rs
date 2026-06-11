@@ -1,10 +1,10 @@
 use anyhow::{Context as _, Result};
-use clap::Args;
+use clap::Args as ClapArgs;
 use colored::Colorize;
 
 use crate::{commands::Context, identity::Identity};
 
-#[derive(Args, Debug)]
+#[derive(ClapArgs, Debug)]
 pub struct Args {
     /// Fetch score for a specific PR number
     #[arg(long, value_name = "PR_ID")]
@@ -20,8 +20,7 @@ pub struct Args {
 }
 
 pub async fn run(args: Args, ctx: Context) -> Result<()> {
-    let identity = Identity::load()
-        .context("No identity found. Run `void init` first.")?;
+    let identity = Identity::load().context("No identity found. Run `void init` first.")?;
 
     if args.pr.is_some() {
         println!("  Fetching score for PR #{}...", args.pr.unwrap());

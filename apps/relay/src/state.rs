@@ -1,6 +1,5 @@
 use anyhow::Result;
-use std::sync::Arc;
-use x25519_dalek::StaticSecret;
+use x25519_dalek::{PublicKey, StaticSecret};
 
 use crate::{config::Config, forwarder::Forwarder};
 
@@ -8,6 +7,7 @@ pub struct AppState {
     pub relay_id: String,
     pub region: String,
     pub private_key: StaticSecret,
+    pub public_key: [u8; 32],
     pub forwarder: Forwarder,
     pub max_payload_bytes: usize,
     pub start_time: std::time::Instant,
@@ -24,11 +24,13 @@ impl AppState {
             .map_err(|_| anyhow::anyhow!("RELAY_PRIVATE_KEY must be 32 bytes (64 hex chars)"))?;
 
         let private_key = StaticSecret::from(key_arr);
+        let public_key = PublicKey::from(&private_key).to_bytes();
 
         Ok(AppState {
             relay_id: cfg.relay_id.clone(),
             region: cfg.region.clone(),
             private_key,
+            public_key,
             forwarder: Forwarder::new(),
             max_payload_bytes: cfg.max_payload_bytes,
             start_time: std::time::Instant::now(),

@@ -1,0 +1,25 @@
+{
+  "name": "@voidpush/mcp-server",
+  "version": "1.0.0",
+  "description": "VoidPush MCP server — AI agents can push code anonymously",
+  "main": "./dist/index.js",
+  "bin": {
+    "voidpush-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "keywords": ["mcp", "voidpush", "anonymous", "ai", "claude", "codex"],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@voidpush/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0"
+  }
+}

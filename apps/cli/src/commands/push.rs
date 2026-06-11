@@ -1,10 +1,11 @@
 use anyhow::{bail, Context as _, Result};
-use clap::Args;
+use clap::Args as ClapArgs;
 use colored::Colorize;
+use std::process::Command;
 
 use crate::{commands::Context, identity::Identity, relay_client::RelayClient, stripper::Stripper};
 
-#[derive(Args, Debug)]
+#[derive(ClapArgs, Debug)]
 pub struct Args {
     /// Remote name
     #[arg(default_value = "origin")]
@@ -44,18 +45,14 @@ pub async fn run(args: Args, ctx: Context) -> Result<()> {
     }
 
     // Open git repo
-    let repo = git2::Repository::open_from_env()
-        .context("Not inside a git repository")?;
+    let repo = git2::Repository::open_from_env().context("Not inside a git repository")?;
 
     // Count unpushed commits
     let unpushed = count_unpushed_commits(&repo, &args.remote, &args.branch)?;
     println!("  Scanning {} commits for metadata...", unpushed);
 
     // Strip metadata
-    let stripper = Stripper::new(
-        &identity,
-        !args.preserve_timestamps,
-    );
+    let stripper = Stripper::new(&identity, !args.preserve_timestamps);
 
     let stripped_count = if ctx.dry_run {
         println!("  {} dry-run — skipping metadata strip", "→".dimmed());
@@ -77,10 +74,7 @@ pub async fn run(args: Args, ctx: Context) -> Result<()> {
     );
 
     // Build relay chain
-    println!(
-        "  Building relay chain (min {} hops)...",
-        args.hops
-    );
+    println!("  Building relay chain (min {} hops)...", args.hops);
 
     let relay_client = RelayClient::new(ctx.force_relay.as_deref());
     let chain = relay_client
@@ -104,7 +98,12 @@ pub async fn run(args: Args, ctx: Context) -> Result<()> {
 
     if ctx.dry_run {
         println!("  {} dry-run — skipping actual push", "→".dimmed());
-        println!("{} Would push {} commits via {} hops", "✓".green(), stripped_count, args.hops);
+        println!(
+            "{} Would push {} commits via {} hops",
+            "✓".green(),
+            stripped_count,
+            args.hops
+        );
         return Ok(());
     }
 
@@ -118,29 +117,36 @@ pub async fn run(args: Args, ctx: Context) -> Result<()> {
         .unwrap_or("unknown")
         .to_string();
 
+    let git_data = create_git_bundle(&repo, &args.branch)
+        .with_context(|| format!("Failed to create git bundle for branch '{}'", args.branch))?;
+
     relay_client
-        .transmit(&chain, &remote_url, &args.branch, args.force)
+        .transmit(&chain, &remote_url, &args.branch, git_data, args.force)
         .await
         .context("Failed to transmit through relay chain")?;
 
     println!("{} Encrypted · transmitting...", "✓".green());
-    println!("{} Pushed anonymously to {}", "✓".green(), format!("void://{}", remote_url).cyan());
+    println!(
+        "{} Pushed anonymously to {}",
+        "✓".green(),
+        format!("void://{}", remote_url).cyan()
+    );
     println!();
-    println!("  Quality score: {} (24h review window)", "pending".dimmed());
+    println!(
+        "  Quality score: {} (24h review window)",
+        "pending".dimmed()
+    );
     println!("  Run {} to check after review", "void score".yellow());
 
     Ok(())
 }
 
-fn count_unpushed_commits(
-    repo: &git2::Repository,
-    remote: &str,
-    branch: &str,
-) -> Result<usize> {
+fn count_unpushed_commits(repo: &git2::Repository, remote: &str, branch: &str) -> Result<usize> {
     let local_ref = format!("refs/heads/{}", branch);
     let remote_ref = format!("refs/remotes/{}/{}", remote, branch);
 
-    let local_oid = repo.refname_to_id(&local_ref)
+    let local_oid = repo
+        .refname_to_id(&local_ref)
         .with_context(|| format!("Branch '{}' not found", branch))?;
 
     let remote_oid = repo.refname_to_id(&remote_ref).ok();
@@ -159,4 +165,34 @@ fn count_unpushed_commits(
             Ok(revwalk.count())
         }
     }
+}
+
+fn create_git_bundle(repo: &git2::Repository, branch: &str) -> Result<Vec<u8>> {
+    let workdir = repo
+        .workdir()
+        .or_else(|| repo.path().parent())
+        .context("Unable to determine repository directory")?;
+    let branch_ref = format!("refs/heads/{}", branch);
+
+    repo.refname_to_id(&branch_ref)
+        .with_context(|| format!("Branch '{}' not found", branch))?;
+
+    let bundle = tempfile::NamedTempFile::new().context("Failed to create temporary bundle")?;
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(workdir)
+        .arg("bundle")
+        .arg("create")
+        .arg(bundle.path())
+        .arg(&branch_ref)
+        .env("GIT_TERMINAL_PROMPT", "0")
+        .output()
+        .context("Failed to execute git bundle")?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("git bundle failed: {}", stderr.trim());
+    }
+
+    std::fs::read(bundle.path()).context("Failed to read git bundle")
 }

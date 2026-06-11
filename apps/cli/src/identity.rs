@@ -3,8 +3,8 @@ use chrono::{DateTime, Duration, Utc};
 use ed25519_dalek::SigningKey;
 use rand::rngs::OsRng;
 use serde::{Deserialize, Serialize};
-use zeroize::Zeroize;
 use std::{fs, path::PathBuf};
+use zeroize::Zeroize;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Identity {
@@ -79,8 +79,7 @@ impl Identity {
 
     fn save(&self) -> Result<()> {
         let path = identity_path()?;
-        fs::create_dir_all(path.parent().unwrap())
-            .context("Cannot create ~/.vpush directory")?;
+        fs::create_dir_all(path.parent().unwrap()).context("Cannot create ~/.vpush directory")?;
 
         #[cfg(unix)]
         {
@@ -89,8 +88,7 @@ impl Identity {
             file.set_permissions(fs::Permissions::from_mode(0o600))?;
         }
 
-        let toml_str = toml::to_string_pretty(self)
-            .context("Failed to serialize identity")?;
+        let toml_str = toml::to_string_pretty(self).context("Failed to serialize identity")?;
         fs::write(&path, toml_str).context("Failed to write identity file")?;
         Ok(())
     }

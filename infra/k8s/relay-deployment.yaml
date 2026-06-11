@@ -1,0 +1,143 @@
+---
+# VoidPush relay node — Kubernetes deployment
+# Deploy per region: ap, eu, us, sa
+# kubectl apply -f k8s/relay-deployment.yaml -n voidpush
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: voidpush
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: relay-secrets
+  namespace: voidpush
+type: Opaque
+stringData:
+  RELAY_PRIVATE_KEY: "REPLACE_WITH_ACTUAL_KEY"  # openssl rand -hex 32
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: void-relay
+  namespace: voidpush
+  labels:
+    app: void-relay
+    component: relay
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: void-relay
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: void-relay
+        component: relay
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: void-relay
+          image: ghcr.io/voidpush-stack/voidpush/void-relay:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+              name: relay
+              protocol: TCP
+          env:
+            - name: RELAY_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: RELAY_REGION
+              value: "eu"
+            - name: PORT
+              value: "8000"
+            - name: RELAY_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: relay-secrets
+                  key: RELAY_PRIVATE_KEY
+            - name: REGISTRY_URL
+              value: "https://registry.voidpush.dev"
+            - name: NODE_TYPE
+              value: "core"
+            - name: RUST_LOG
+              value: "ghost_relay=info,warn"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /relay/ping
+              port: 8000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: void-relay-svc
+  namespace: voidpush
+spec:
+  selector:
+    app: void-relay
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: relay
+  type: ClusterIP
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: void-relay-hpa
+  namespace: voidpush
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: void-relay
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

@@ -1,15 +1,11 @@
-use axum::{
-    extract::State,
-    http::StatusCode,
-    response::Json,
-};
-use serde::{Deserialize, Serialize};
+use axum::{extract::State, http::StatusCode, response::Json};
+use serde::Deserialize;
 use serde_json::{json, Value};
 use std::sync::Arc;
 use tracing::{error, info};
 
 use crate::{
-    onion::{validate_packet_size, OnionPacket, peel_layer},
+    onion::{peel_layer, validate_packet_size, OnionPacket},
     state::AppState,
 };
 
@@ -37,6 +33,8 @@ pub async fn relay_info(State(state): State<Arc<AppState>>) -> Json<Value> {
     Json(json!({
         "relay_id": state.relay_id,
         "region": state.region,
+        "public_key": hex::encode(state.public_key),
+        "x25519_public_key": hex::encode(state.public_key),
         "version": "0.1.0",
         "max_payload_bytes": state.max_payload_bytes,
     }))
@@ -83,7 +81,11 @@ pub async fn forward(
                 }
             };
 
-            if let Err(e) = state.forwarder.forward_with_retry(&next_hop_url, &next_packet).await {
+            if let Err(e) = state
+                .forwarder
+                .forward_with_retry(&next_hop_url, &next_packet)
+                .await
+            {
                 error!("Failed to forward to {}: {}", next_hop_url, e);
                 return Err((
                     StatusCode::BAD_GATEWAY,
@@ -114,7 +116,8 @@ pub async fn forward(
                 }
             };
 
-            if let Err(e) = state.forwarder
+            if let Err(e) = state
+                .forwarder
                 .push_to_git_remote(
                     &git_payload.remote_url,
                     &git_payload.branch,

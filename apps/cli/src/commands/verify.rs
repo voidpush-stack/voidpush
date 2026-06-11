@@ -1,10 +1,10 @@
 use anyhow::{Context as _, Result};
-use clap::Args;
+use clap::Args as ClapArgs;
 use colored::Colorize;
 
 use crate::{commands::Context, identity::Identity};
 
-#[derive(Args, Debug)]
+#[derive(ClapArgs, Debug)]
 pub struct Args {
     /// Verify a specific ZK chain ID
     #[arg(long, value_name = "CHAIN_ID")]
@@ -20,16 +20,16 @@ pub struct Args {
 }
 
 pub async fn run(args: Args, ctx: Context) -> Result<()> {
-    let identity = Identity::load()
-        .context("No identity found. Run `void init` first.")?;
+    let identity = Identity::load().context("No identity found. Run `void init` first.")?;
 
     // Load ZK root
     let zk_root = void_crypto::zk::load_or_create_zk_root()
         .context("Failed to load ZK root — run `void init --link` first")?;
 
-    let chain_id = args.chain.as_deref().unwrap_or_else(|| {
-        identity.zk_chain_id.as_deref().unwrap_or("none")
-    });
+    let chain_id = args
+        .chain
+        .as_deref()
+        .unwrap_or_else(|| identity.zk_chain_id.as_deref().unwrap_or("none"));
 
     if chain_id == "none" {
         anyhow::bail!(
@@ -76,7 +76,10 @@ pub async fn run(args: Args, ctx: Context) -> Result<()> {
             println!("  {} dry-run — skipping submission", "→".dimmed());
         } else {
             // TODO: POST proof to repo verification endpoint
-            println!("{} Proof submitted — contributor status verified", "✓".green());
+            println!(
+                "{} Proof submitted — contributor status verified",
+                "✓".green()
+            );
         }
     }
 

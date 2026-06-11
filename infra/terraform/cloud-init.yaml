@@ -1,0 +1,75 @@
+#cloud-config
+# VoidPush relay node bootstrap
+# Installs Docker, pulls void-relay image, starts service
+
+package_update: true
+packages:
+  - docker.io
+  - docker-compose-v2
+  - curl
+  - ufw
+
+runcmd:
+  # Enable Docker
+  - systemctl enable docker
+  - systemctl start docker
+
+  # Firewall
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp
+  - ufw allow 8000/tcp
+  - ufw allow 443/tcp
+  - ufw --force enable
+
+  # Create relay user (no sudo)
+  - useradd -r -s /bin/false voidrelay
+
+  # Write relay config
+  - mkdir -p /etc/voidpush-relay
+  - |
+    cat > /etc/voidpush-relay/config.env << 'ENVEOF'
+    RELAY_ID=${relay_id}
+    RELAY_REGION=${relay_region}
+    RELAY_PRIVATE_KEY=${relay_private_key}
+    REGISTRY_URL=${registry_url}
+    PORT=8000
+    NODE_TYPE=core
+    RUST_LOG=void_relay=info,warn
+    ENVEOF
+  - chmod 600 /etc/voidpush-relay/config.env
+
+  # Pull and run relay
+  - docker pull ${relay_image}
+  - |
+    docker run -d \
+      --name void-relay \
+      --restart unless-stopped \
+      --env-file /etc/voidpush-relay/config.env \
+      -p 8000:8000 \
+      --memory 512m \
+      --cpus 0.8 \
+      --read-only \
+      --security-opt no-new-privileges \
+      ${relay_image}
+
+  # Systemd watchdog
+  - |
+    cat > /etc/systemd/system/void-relay-watchdog.service << 'SVCEOF'
+    [Unit]
+    Description=VoidPush relay watchdog
+    After=docker.service
+
+    [Service]
+    Type=simple
+    ExecStart=/usr/bin/docker start -a void-relay
+    Restart=always
+    RestartSec=10
+
+    [Install]
+    WantedBy=multi-user.target
+    SVCEOF
+  - systemctl enable void-relay-watchdog
+  - systemctl start void-relay-watchdog
+
+final_message: "VoidPush relay ${relay_id} ready in $UPTIME seconds"

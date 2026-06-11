@@ -48,7 +48,9 @@ pub struct ZkRoot {
 impl ZkRoot {
     /// Generate a new random root secret
     pub fn generate() -> Self {
-        ZkRoot { secret: rand::random() }
+        ZkRoot {
+            secret: rand::random(),
+        }
     }
 
     /// Load from bytes (e.g. from disk)
@@ -111,9 +113,9 @@ impl ZkRoot {
     /// Generate a full ZkChain for a new ghost session
     pub fn new_chain(&self, void_id: &str, prev_void_id: Option<&str>) -> ZkChain {
         ZkChain {
-            chain_id:   self.chain_id(),
+            chain_id: self.chain_id(),
             commitment: self.commit(void_id),
-            proof:      self.prove(void_id, prev_void_id),
+            proof: self.prove(void_id, prev_void_id),
         }
     }
 
@@ -124,12 +126,7 @@ impl ZkRoot {
 }
 
 /// Verify a ZkProof (used by score engine — no secret needed)
-pub fn verify_proof(
-    proof: &ZkProof,
-    void_id: &str,
-    chain_id: &str,
-    commitment: &str,
-) -> bool {
+pub fn verify_proof(proof: &ZkProof, void_id: &str, chain_id: &str, commitment: &str) -> bool {
     // Recompute challenge
     let mut h = Sha256::new();
     h.update(proof.nonce_commitment.as_bytes());
@@ -153,8 +150,7 @@ pub fn save_zk_root(root: &ZkRoot) -> Result<()> {
         .join(".vpush")
         .join("zk-root");
 
-    std::fs::create_dir_all(path.parent().unwrap())
-        .context("Cannot create ~/.vpush dir")?;
+    std::fs::create_dir_all(path.parent().unwrap()).context("Cannot create ~/.vpush dir")?;
 
     #[cfg(unix)]
     {
@@ -163,8 +159,7 @@ pub fn save_zk_root(root: &ZkRoot) -> Result<()> {
         file.set_permissions(std::fs::Permissions::from_mode(0o600))?;
     }
 
-    std::fs::write(&path, root.to_bytes())
-        .context("Failed to write zk-root")?;
+    std::fs::write(&path, root.to_bytes()).context("Failed to write zk-root")?;
 
     Ok(())
 }
@@ -177,8 +172,7 @@ pub fn load_or_create_zk_root() -> Result<ZkRoot> {
         .join("zk-root");
 
     if path.exists() {
-        let bytes = std::fs::read(&path)
-            .context("Failed to read zk-root")?;
+        let bytes = std::fs::read(&path).context("Failed to read zk-root")?;
         let arr: [u8; 32] = bytes
             .try_into()
             .map_err(|_| anyhow::anyhow!("zk-root file corrupted"))?;

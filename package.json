@@ -1,31 +1,34 @@
 {
   "name": "voidpush-monorepo",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
-  "description": "Anonymous code contribution network — monorepo root",
+  "description": "VoidPush — anonymous code contribution network",
   "workspaces": [
     "apps/web",
+    "apps/mcp-server",
     "packages/@voidpush/types",
     "packages/@voidpush/ui",
-    "packages/@voidpush/crypto"
+    "packages/@voidpush/crypto",
+    "packages/@voidpush/sdk"
   ],
   "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
-    "lint": "turbo run lint",
-    "test": "turbo run test",
-    "typecheck": "turbo run typecheck",
-    "clean": "turbo run clean && rm -rf node_modules",
-    "web": "pnpm --filter @voidpush/web dev",
-    "score-engine": "pnpm --filter @voidpush/score-engine dev"
+    "dev":          "turbo run dev",
+    "build":        "turbo run build",
+    "lint":         "turbo run lint",
+    "test":         "turbo run test",
+    "typecheck":    "turbo run typecheck",
+    "clean":        "turbo run clean && rm -rf node_modules",
+    "web":          "pnpm --filter @voidpush/web dev",
+    "mcp":          "pnpm --filter @voidpush/mcp-server dev",
+    "score-engine": "cd apps/score-engine && hatch run dev"
   },
   "devDependencies": {
-    "turbo": "^2.0.0",
-    "typescript": "^5.4.0",
-    "eslint": "^9.0.0",
-    "@typescript-eslint/parser": "^7.0.0",
-    "@typescript-eslint/eslint-plugin": "^7.0.0",
-    "prettier": "^3.2.0"
+    "turbo":                          "^2.0.0",
+    "typescript":                     "^5.4.0",
+    "eslint":                         "^9.0.0",
+    "@typescript-eslint/parser":      "^7.0.0",
+    "@typescript-eslint/eslint-plugin":"^7.0.0",
+    "prettier":                       "^3.2.0"
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {

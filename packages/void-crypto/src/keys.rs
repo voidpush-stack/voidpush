@@ -4,8 +4,8 @@ use rand::rngs::OsRng;
 use zeroize::Zeroize;
 
 pub struct VoidKeypair {
-    pub signing_key:   SigningKey,
-    pub void_id:      String,
+    pub signing_key: SigningKey,
+    pub void_id: String,
 }
 
 impl VoidKeypair {
@@ -27,5 +27,8 @@ pub fn generate_keypair() -> Result<VoidKeypair> {
         "ghost_{}",
         &hex::encode(signing_key.verifying_key().as_bytes())[..8]
     );
-    Ok(VoidKeypair { signing_key, void_id: id })
+    Ok(VoidKeypair {
+        signing_key,
+        void_id: id,
+    })
 }

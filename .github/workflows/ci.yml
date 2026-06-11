@@ -22,9 +22,23 @@ jobs:
       - run: pnpm --filter @voidpush/web lint
       - run: pnpm --filter @voidpush/web build
 
-  # ─── CLI + Relay (Rust) ─────────────────────────────────────────────
+  # ─── SDK (TypeScript) ───────────────────────────────────────────────
+  sdk-ts:
+    name: TypeScript SDK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @voidpush/sdk typecheck
+      - run: pnpm --filter @voidpush/sdk build
+
+  # ─── CLI + Relay + void-crypto (Rust) ───────────────────────────────
   rust:
-    name: Rust (CLI + Relay)
+    name: Rust (CLI + Relay + void-crypto)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -48,15 +62,18 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: ghost
-          POSTGRES_PASSWORD: ghost
-          POSTGRES_DB: ghost_scores_test
+          POSTGRES_USER: voidpush
+          POSTGRES_PASSWORD: voidpush
+          POSTGRES_DB: void_scores_test
         ports: ["5432:5432"]
         options: >-
           --health-cmd pg_isready
           --health-interval 5s
           --health-timeout 3s
           --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -66,27 +83,80 @@ jobs:
       - run: hatch run types
       - run: hatch run test
         env:
-          DATABASE_URL: postgresql+asyncpg://ghost:ghost@localhost:5432/ghost_scores_test
+          DATABASE_URL: postgresql+asyncpg://voidpush:voidpush@localhost:5432/void_scores_test
+          REDIS_URL: redis://localhost:6379/0
+
+  # ─── Python SDK ─────────────────────────────────────────────────────
+  sdk-py:
+    name: Python SDK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/voidpush-sdk-py
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install hatch
+      - run: hatch run lint
+      - run: hatch run types
 
   # ─── Release binaries ───────────────────────────────────────────────
   release:
-    name: Release binaries
+    name: Release — ${{ matrix.target }}
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [web, rust, score-engine]
+    needs: [web, rust, score-engine, sdk-ts, sdk-py]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest   target: x86_64-unknown-linux-gnu
-          - os: macos-latest    target: aarch64-apple-darwin
-          - os: windows-latest  target: x86_64-pc-windows-msvc
+          - os: ubuntu-latest   target: x86_64-unknown-linux-gnu   bin: vpush
+          - os: macos-latest    target: aarch64-apple-darwin        bin: vpush
+          - os: windows-latest  target: x86_64-pc-windows-msvc      bin: vpush.exe
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with: { targets: "${{ matrix.target }}" }
       - uses: Swatinem/rust-cache@v2
       - run: cargo build --release --target ${{ matrix.target }} -p vpush
-      - uses: actions/upload-artifact@v4
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
         with:
-          name: ghost-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/ghost*
+          name: vpush-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/${{ matrix.bin }}
+
+  # ─── Docker images ───────────────────────────────────────────────────
+  docker:
+    name: Docker images
+    if: github.ref == 'refs/heads/main'
+    needs: [rust, score-engine]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/setup-buildx-action@v3
+      - name: Build and push void-relay
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: infra/docker/Dockerfile.relay
+          push: true
+          tags: ghcr.io/voidpush-stack/voidpush/void-relay:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Build and push score-engine
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: infra/docker/Dockerfile.score-engine
+          push: true
+          tags: ghcr.io/voidpush-stack/voidpush/score-engine:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

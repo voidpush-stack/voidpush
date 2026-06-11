@@ -1,0 +1,131 @@
+---
+# VoidPush score engine — Kubernetes deployment
+# kubectl apply -f k8s/score-engine-deployment.yaml -n voidpush
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: score-engine-config
+  namespace: voidpush
+data:
+  ENV: "production"
+  AUDIT_LOG_PATH: "/var/log/voidpush/audit.jsonl"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: score-engine-secrets
+  namespace: voidpush
+type: Opaque
+stringData:
+  DATABASE_URL: "postgresql+asyncpg://voidpush:REPLACE_PASSWORD@postgres-svc:5432/void_scores"
+  REDIS_URL: "redis://redis-svc:6379/0"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: score-engine
+  namespace: voidpush
+  labels:
+    app: score-engine
+    component: api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: score-engine
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: score-engine
+        component: api
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: score-engine
+          image: ghcr.io/voidpush-stack/voidpush/score-engine:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8001
+              name: api
+          envFrom:
+            - configMapRef:
+                name: score-engine-config
+            - secretRef:
+                name: score-engine-secrets
+          env:
+            - name: WORKERS
+              value: "2"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: audit-log
+              mountPath: /var/log/voidpush
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: false
+      volumes:
+        - name: audit-log
+          emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: score-engine-svc
+  namespace: voidpush
+spec:
+  selector:
+    app: score-engine
+  ports:
+    - port: 8001
+      targetPort: 8001
+      name: api
+  type: ClusterIP
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: score-engine-hpa
+  namespace: voidpush
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: score-engine
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 65

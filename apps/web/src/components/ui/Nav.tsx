@@ -5,18 +5,18 @@ import { useState, useEffect } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 
 const NAV_LINKS = [
-  { label: "Protocol",    href: "/#how"        },
-  { label: "Network",     href: "/network"      },
-  { label: "Explore",     href: "/explore"      },
+  { label: "Explore",     href: "/explore"     },
   { label: "Showcase",    href: "/showcase"     },
   { label: "Leaderboard", href: "/leaderboard"  },
+  { label: "Network",     href: "/network"      },
   { label: "Blog",        href: "/blog"         },
   { label: "Docs",        href: "/docs"         },
+  { label: "Org",         href: "/org"          },
 ];
 
 export function Nav() {
-  const [scrolled, setScrolled]   = useState(false);
-  const [menuOpen, setMenuOpen]   = useState(false);
+  const [scrolled,  setScrolled]  = useState(false);
+  const [menuOpen,  setMenuOpen]  = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -35,14 +35,19 @@ export function Nav() {
         backdropFilter: "blur(16px)",
         transition: "background 0.3s",
       }}>
+        {/* Logo */}
         <Link href="/" style={{ textDecoration: "none" }}>
-          <span style={{ fontFamily: "var(--display)", fontWeight: 800, fontSize: "1rem", color: "var(--text)", display: "flex", alignItems: "center", gap: "0.6rem", letterSpacing: "-0.02em" }}>
+          <span style={{
+            fontFamily: "var(--display)", fontWeight: 800, fontSize: "1rem",
+            color: "var(--text)", display: "flex", alignItems: "center",
+            gap: "0.6rem", letterSpacing: "-0.02em",
+          }}>
             <VoidLogo />
             VoidPush
           </span>
         </Link>
 
-        {/* Desktop */}
+        {/* Desktop links */}
         <ul className="nav-links" style={{ display: "flex", gap: "1.5rem", listStyle: "none", alignItems: "center" }}>
           {NAV_LINKS.map(({ label, href }) => (
             <li key={label}>
@@ -51,10 +56,14 @@ export function Nav() {
           ))}
         </ul>
 
+        {/* Right side */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <ThemeToggle />
+          <Link href="/dashboard" className="nav-link-secondary">dashboard</Link>
           <Link href="/waitlist" className="nav-cta">[ join beta ]</Link>
-          <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}
+          <button
+            className="hamburger"
+            onClick={() => setMenuOpen(!menuOpen)}
             style={{ display: "none", background: "transparent", border: "1px solid var(--border)", color: "var(--muted)", padding: "0.4rem 0.6rem", cursor: "pointer", fontFamily: "var(--mono)", fontSize: "0.75rem" }}>
             {menuOpen ? "✕" : "☰"}
           </button>
@@ -63,13 +72,21 @@ export function Nav() {
 
       {/* Mobile drawer */}
       {menuOpen && (
-        <div style={{ position: "fixed", top: "57px", left: 0, right: 0, zIndex: 99, background: "var(--bg2)", borderBottom: "1px solid var(--border)", padding: "1rem 1.5rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+        <div style={{
+          position: "fixed", top: "57px", left: 0, right: 0, zIndex: 99,
+          background: "var(--bg2)", borderBottom: "1px solid var(--border)",
+          padding: "1rem 1.5rem", display: "flex", flexDirection: "column", gap: "0.75rem",
+        }}>
           {NAV_LINKS.map(({ label, href }) => (
             <Link key={label} href={href} onClick={() => setMenuOpen(false)}
               style={{ color: "var(--muted)", textDecoration: "none", fontSize: "0.82rem", padding: "0.5rem 0", borderBottom: "1px solid var(--border2)", letterSpacing: "0.06em" }}>
               {label}
             </Link>
           ))}
+          <Link href="/dashboard" onClick={() => setMenuOpen(false)}
+            style={{ color: "var(--teal)", textDecoration: "none", fontSize: "0.82rem", padding: "0.5rem 0", borderBottom: "1px solid var(--border2)" }}>
+            dashboard
+          </Link>
           <Link href="/waitlist" onClick={() => setMenuOpen(false)}
             style={{ color: "var(--ghost)", textDecoration: "none", fontSize: "0.82rem", padding: "0.5rem 0", fontWeight: 700 }}>
             → join beta
@@ -80,9 +97,11 @@ export function Nav() {
       <style>{`
         .nav-link { color:var(--muted); text-decoration:none; font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; transition:color .2s; font-family:var(--mono); }
         .nav-link:hover { color:var(--ghost); }
+        .nav-link-secondary { color:var(--muted); text-decoration:none; font-size:.68rem; letter-spacing:.08em; transition:color .2s; font-family:var(--mono); }
+        .nav-link-secondary:hover { color:var(--teal); }
         .nav-cta { background:transparent; border:1px solid var(--ghost); color:var(--ghost); padding:.45rem 1rem; font-family:var(--mono); font-size:.7rem; letter-spacing:.05em; text-decoration:none; transition:all .2s; display:inline-block; white-space:nowrap; }
         .nav-cta:hover { background:var(--ghost); color:var(--bg); }
-        @media(max-width:900px){ .nav-links { display:none !important; } .hamburger { display:block !important; } }
+        @media(max-width:900px){ .nav-links { display:none !important; } .hamburger { display:block !important; } .nav-link-secondary { display:none; } }
       `}</style>
     </>
   );
