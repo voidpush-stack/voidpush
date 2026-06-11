@@ -10,14 +10,19 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://voidpush.dev"),
   title: {
-    default: "VoidPush — Anonymous Code. Pure Signal.",
-    template: "%s · VoidPush",
+    default: "VoidPush - Anonymous Code. Pure Signal.",
+    template: "%s | VoidPush",
   },
   description:
     "Anonymous code contribution network. Strip your identity, push through relay nodes, get reviewed on merit alone. No usernames. No history. No bias.",
   keywords: [
-    "anonymous code review", "anonymous git", "blind code review",
-    "privacy", "open source", "voidpush", "void push",
+    "anonymous code review",
+    "anonymous git",
+    "blind code review",
+    "privacy",
+    "open source",
+    "voidpush",
+    "void push",
   ],
   authors: [{ name: "VoidPush", url: "https://voidpush.dev" }],
   creator: "VoidPush",
@@ -32,20 +37,20 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://voidpush.dev",
     siteName: "VoidPush",
-    title: "VoidPush — Anonymous Code. Pure Signal.",
+    title: "VoidPush - Anonymous Code. Pure Signal.",
     description: "Push code without revealing your identity. Reviewed blind. Judged on merit.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "VoidPush — Anonymous Code. Pure Signal.",
+        alt: "VoidPush - Anonymous Code. Pure Signal.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "VoidPush — Anonymous Code. Pure Signal.",
+    title: "VoidPush - Anonymous Code. Pure Signal.",
     description: "Push code without revealing your identity. Reviewed blind. Judged on merit.",
     images: ["/og-image.png"],
     creator: "@voidpush_",
@@ -62,9 +67,6 @@ export const metadata: Metadata = {
     canonical: "https://voidpush.dev",
     languages: {
       "en-US": "https://voidpush.dev",
-      "id-ID": "https://voidpush.dev/id",
-      "zh-CN": "https://voidpush.dev/zh",
-      "ja-JP": "https://voidpush.dev/ja",
     },
   },
 };
