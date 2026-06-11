@@ -58,6 +58,17 @@ jobs:
       - run: cargo build --release
       - run: cargo test
 
+  relay-e2e:
+    name: Relay push E2E
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: node tools/e2e-relay-push.mjs
+
   # ─── Score Engine (Python) ──────────────────────────────────────────
   score-engine:
     name: Score Engine
