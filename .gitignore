@@ -83,7 +83,7 @@ logs/
 *.wasm
 apps/vscode-extension/dist/
 apps/vscode-extension/*.vsix
-{apps/
+[{]apps/
 
 # ─── Test artifacts ───────────────────────────────────────────────────────────
 coverage/
