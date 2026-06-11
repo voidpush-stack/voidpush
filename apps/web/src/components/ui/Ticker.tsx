@@ -15,41 +15,12 @@ export function Ticker() {
   const doubled = [...ITEMS, ...ITEMS];
 
   return (
-    <div
-      style={{
-        overflow: "hidden",
-        borderTop: "1px solid var(--border)",
-        borderBottom: "1px solid var(--border)",
-        padding: "0.6rem 0",
-        background: "var(--bg2)",
-        position: "relative",
-        zIndex: 1,
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          gap: "3rem",
-          width: "max-content",
-          animation: "ticker 28s linear infinite",
-        }}
-      >
+    <div className="ticker-strip">
+      <div className="ticker-strip__track">
         {doubled.map((item, i) => (
-          <span
-            key={i}
-            style={{
-              fontSize: "0.63rem",
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              color: "var(--muted)",
-              whiteSpace: "nowrap",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.75rem",
-            }}
-          >
+          <span key={i} className="ticker-strip__item">
             {item}
-            <span style={{ color: "var(--ghost)", opacity: 0.35 }}>◆</span>
+            <span className="ticker-strip__diamond">◆</span>
           </span>
         ))}
       </div>

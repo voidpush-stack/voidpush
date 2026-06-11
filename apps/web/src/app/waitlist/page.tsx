@@ -40,7 +40,7 @@ export default function WaitlistPage() {
   return (
     <>
       <Nav />
-      <div style={{ paddingTop: "5rem", minHeight: "100vh", position: "relative", zIndex: 1 }}>
+      <div className="waitlist-page" style={{ paddingTop: "5rem", minHeight: "100vh", position: "relative", zIndex: 1 }}>
         {/* Hero */}
         <div style={{ borderBottom: "1px solid var(--border)", background: "var(--bg2)", padding: "4rem 2rem 3rem", textAlign: "center", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 50% 0%, rgba(124,58,237,0.08) 0%, transparent 60%)", pointerEvents: "none" }} />
@@ -163,14 +163,6 @@ export default function WaitlistPage() {
         </div>
       </div>
       <Footer />
-      <style>{`
-        input::placeholder { color: var(--muted); opacity: 0.5; }
-        input:focus { border-color: var(--ghost) !important; }
-        @media(max-width:600px){
-          form > div { flex-direction: column !important; }
-          form > div input { border-right: 1px solid var(--border) !important; border-bottom: none !important; }
-        }
-      `}</style>
     </>
   );
 }
