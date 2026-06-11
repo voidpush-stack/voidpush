@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -74,12 +75,24 @@ export function Nav() {
 }
 
 function VoidLogo() {
+  const dots = Array.from({ length: 72 });
+
   return (
     <span className="void-logo" aria-hidden="true">
-      <span className="void-logo__core" />
-      <span className="void-logo__orbit void-logo__orbit--a" />
-      <span className="void-logo__orbit void-logo__orbit--b" />
-      <span className="void-logo__push" />
+      <span className="void-logo__spin">
+        <span className="void-logo__sphere">
+          {dots.map((_, index) => (
+            <span
+              key={index}
+              className="void-logo__dot"
+              style={{ "--dot-index": index } as CSSProperties}
+            />
+          ))}
+          <span className="void-logo__axis void-logo__axis--vertical" />
+          <span className="void-logo__axis void-logo__axis--horizontal" />
+          <span className="void-logo__mark">V</span>
+        </span>
+      </span>
     </span>
   );
 }
