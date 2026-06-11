@@ -15,8 +15,8 @@ pub struct Args {
     #[arg(default_value = "main")]
     pub branch: String,
 
-    /// Number of relay hops (min 3, max 9)
-    #[arg(long, default_value = "3", value_parser = clap::value_parser!(u8).range(3..=9))]
+    /// Number of relay hops (min 3, max 9; set VPUSH_ALLOW_SINGLE_HOP=1 for local tests)
+    #[arg(long, default_value = "3", value_parser = parse_hops)]
     pub hops: u8,
 
     /// Keep commit timestamps (weakens anonymity)
@@ -164,6 +164,20 @@ fn count_unpushed_commits(repo: &git2::Repository, remote: &str, branch: &str) -
             revwalk.hide(remote_oid)?;
             Ok(revwalk.count())
         }
+    }
+}
+
+fn parse_hops(value: &str) -> std::result::Result<u8, String> {
+    let hops = value
+        .parse::<u8>()
+        .map_err(|_| "hops must be an integer".to_string())?;
+
+    if (3..=9).contains(&hops)
+        || (hops == 1 && std::env::var("VPUSH_ALLOW_SINGLE_HOP").ok().as_deref() == Some("1"))
+    {
+        Ok(hops)
+    } else {
+        Err("hops must be between 3 and 9".to_string())
     }
 }
 

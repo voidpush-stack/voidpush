@@ -108,10 +108,7 @@ impl Identity {
 
         // Wipe ZK root too unless --preserve-zk
         if !preserve_zk {
-            let zk_path = dirs::home_dir()
-                .context("Cannot find home directory")?
-                .join(".vpush")
-                .join("zk-root");
+            let zk_path = vpush_home_dir()?.join("zk-root");
             if zk_path.exists() {
                 let size = fs::metadata(&zk_path)?.len() as usize;
                 fs::write(&zk_path, vec![0u8; size])?;
@@ -130,8 +127,15 @@ impl Drop for Identity {
 }
 
 fn identity_path() -> Result<PathBuf> {
+    Ok(vpush_home_dir()?.join("identity"))
+}
+
+fn vpush_home_dir() -> Result<PathBuf> {
+    if let Some(path) = std::env::var_os("VPUSH_HOME") {
+        return Ok(PathBuf::from(path));
+    }
+
     Ok(dirs::home_dir()
         .context("Cannot find home directory")?
-        .join(".vpush")
-        .join("identity"))
+        .join(".vpush"))
 }

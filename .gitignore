@@ -8,6 +8,7 @@ dist/
 
 # ─── Rust / Cargo ─────────────────────────────────────────────────────────────
 target/
+.cargo-check-home/
 # NOTE: Cargo.lock IS committed for binary crates (CLI, relay)
 # Do NOT add Cargo.lock here
 
