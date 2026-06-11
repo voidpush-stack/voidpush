@@ -7,6 +7,13 @@ on:
     branches: [main]
 
 jobs:
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: node tools/secret-scan.mjs
+
   # ─── Web (Next.js) ──────────────────────────────────────────────────
   web:
     name: Web app
