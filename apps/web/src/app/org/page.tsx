@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Nav } from "@/components/ui/Nav";
 import { Footer } from "@/components/ui/Footer";
 
@@ -169,20 +170,21 @@ export default function OrgPage() {
                   ))}
                 </ul>
 
-                <button
+                <Link
+                  href={`/waitlist?plan=${plan.name.toLowerCase()}`}
                   style={{
                     padding: "0.75rem",
                     background: plan.highlight ? "var(--ghost)" : "transparent",
                     border: `1px solid ${plan.highlight ? "var(--ghost)" : "var(--border)"}`,
                     color: plan.highlight ? "var(--bg)" : "var(--muted)",
-                    fontFamily: "var(--mono)", fontSize: "0.75rem", fontWeight: plan.highlight ? 700 : 400,
+                    fontFamily: "var(--sans)", fontSize: "0.86rem", fontWeight: 800,
                     cursor: "pointer", transition: "all 0.2s",
-                    width: "100%",
+                    width: "100%", textDecoration: "none", textAlign: "center", borderRadius: 999,
                   }}
                   onMouseEnter={(e) => { if (!plan.highlight) { e.currentTarget.style.borderColor = "var(--ghost)"; e.currentTarget.style.color = "var(--ghost)"; }}}
                   onMouseLeave={(e) => { if (!plan.highlight) { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--muted)"; }}}>
-                  {plan.cta} →
-                </button>
+                  {plan.cta}
+                </Link>
               </div>
             ))}
           </div>
@@ -218,12 +220,12 @@ export default function OrgPage() {
               Set up in 10 minutes. No credit card required for trial.
             </p>
             <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
-              <button style={{ padding: "0.875rem 2rem", background: "var(--ghost)", color: "var(--bg)", border: "none", fontFamily: "var(--mono)", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer" }}>
-                → start free trial
-              </button>
-              <button style={{ padding: "0.875rem 2rem", background: "transparent", color: "var(--muted)", border: "1px solid var(--border)", fontFamily: "var(--mono)", fontSize: "0.78rem", cursor: "pointer" }}>
-                talk to sales
-              </button>
+              <Link href="/waitlist" style={{ padding: "0.875rem 2rem", background: "var(--ghost)", color: "var(--bg)", border: "none", fontFamily: "var(--sans)", fontSize: "0.9rem", fontWeight: 800, textDecoration: "none", borderRadius: 999 }}>
+                Start free trial
+              </Link>
+              <a href="mailto:sales@voidpush.dev?subject=VoidPush%20org%20demo" style={{ padding: "0.875rem 2rem", background: "transparent", color: "var(--muted)", border: "1px solid var(--border)", fontFamily: "var(--sans)", fontSize: "0.9rem", fontWeight: 800, textDecoration: "none", borderRadius: 999 }}>
+                Talk to sales
+              </a>
             </div>
           </div>
         </div>

@@ -1,171 +1,131 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+type LineTone = "prompt" | "cmd" | "muted" | "ok" | "info" | "warn";
 
 interface TerminalLine {
-  type: "prompt" | "cmd" | "out" | "success" | "info" | "accent" | "space" | "end";
-  text?: string;
+  tone: LineTone;
+  text: string;
 }
 
-const LINES: TerminalLine[] = [
-  { type: "prompt", text: "void@null:~$ " },
-  { type: "cmd",    text: "void init" },
-  { type: "out",    text: "  Generating ephemeral keypair..." },
-  { type: "success",text: "  ✓ Identity: void_7f3a2b9c (expires in 72h)" },
-  { type: "out",    text: "  ✓ No logs. No trace. No name." },
-  { type: "space" },
-  { type: "prompt", text: "void@null:~$ " },
-  { type: "cmd",    text: "void push origin main" },
-  { type: "out",    text: "  Stripping 14 commits of author metadata..." },
-  { type: "out",    text: "  Routing through relay chain..." },
-  { type: "info",   text: "  ↳ R1:Tokyo → R4:Singapore → R5:Amsterdam → target" },
-  { type: "success",text: "  ✓ Pushed anonymously · quality score pending" },
-  { type: "space" },
-  { type: "end" },
+const SESSIONS: TerminalLine[][] = [
+  [
+    { tone: "prompt", text: "void@relay-0:~$" },
+    { tone: "cmd", text: "vpush init --ttl 72 --link" },
+    { tone: "muted", text: "generating ephemeral Ed25519 identity" },
+    { tone: "ok", text: "identity void_7f3a2b9c stored locally" },
+    { tone: "info", text: "zk chain linked without exposing source identity" },
+  ],
+  [
+    { tone: "prompt", text: "void@relay-0:~$" },
+    { tone: "cmd", text: "vpush push origin main --hops 3" },
+    { tone: "muted", text: "stripping author, email, timestamp, hostname" },
+    { tone: "info", text: "route Tokyo -> Singapore -> Amsterdam -> target" },
+    { tone: "ok", text: "bundle encrypted and transmitted" },
+  ],
+  [
+    { tone: "prompt", text: "void@relay-0:~$" },
+    { tone: "cmd", text: "vpush score --json" },
+    { tone: "muted", text: "blind review window: 24h" },
+    { tone: "ok", text: "quality score 9.4 / 10" },
+    { tone: "info", text: "rank #3 weekly, proof commitment updated" },
+  ],
 ];
 
-const COLOR: Record<string, string> = {
-  prompt:  "var(--ghost)",
-  cmd:     "var(--text)",
-  out:     "var(--muted)",
-  success: "var(--green)",
-  info:    "var(--blue)",
-  accent:  "var(--teal)",
+const RELAYS = [
+  { id: "R1", city: "Tokyo", ms: 12, status: "sealed" },
+  { id: "R4", city: "Singapore", ms: 18, status: "forwarded" },
+  { id: "R5", city: "Amsterdam", ms: 19, status: "exit" },
+];
+
+const TONE_CLASS: Record<LineTone, string> = {
+  prompt: "term-prompt",
+  cmd: "term-cmd",
+  muted: "term-muted",
+  ok: "term-ok",
+  info: "term-info",
+  warn: "term-warn",
 };
 
 export function Terminal() {
-  const bodyRef = useRef<HTMLDivElement>(null);
-  const lineIdx  = useRef(0);
-  const charIdx  = useRef(0);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const [session, setSession] = useState(0);
+  const [visible, setVisible] = useState(1);
+
+  const lines = useMemo(() => SESSIONS[session], [session]);
 
   useEffect(() => {
-    const body = bodyRef.current;
-    if (!body) return;
+    setVisible(1);
+    const timers = lines
+      .slice(1)
+      .map((_, index) => setTimeout(() => setVisible(index + 2), 520 + index * 360));
+    const nextTimer = setTimeout(() => {
+      setSession((current) => (current + 1) % SESSIONS.length);
+    }, 3600);
 
-    function typeNext() {
-      if (!body) return;
-      const li = lineIdx.current;
-      if (li >= LINES.length) return;
-
-      const line = LINES[li];
-
-      if (line.type === "space") {
-        const el = document.createElement("span");
-        el.style.display = "block";
-        el.innerHTML = "&nbsp;";
-        body.appendChild(el);
-        lineIdx.current++;
-        charIdx.current = 0;
-        timerRef.current = setTimeout(typeNext, 80);
-        return;
-      }
-
-      if (line.type === "end") {
-        const el = document.createElement("span");
-        el.style.display = "block";
-        el.innerHTML = `<span style="color:var(--ghost)">void@null:~$</span> <span class="cursor-blink"></span>`;
-        body.appendChild(el);
-        return;
-      }
-
-      const text = line.text ?? "";
-      const ci = charIdx.current;
-
-      // Create or get current line element
-      let currentEl = body.querySelector(`[data-li="${li}"]`) as HTMLSpanElement | null;
-      if (!currentEl) {
-        currentEl = document.createElement("span");
-        currentEl.style.display = "block";
-        currentEl.dataset.li = String(li);
-        body.appendChild(currentEl);
-      }
-
-      const color = COLOR[line.type] ?? "var(--muted)";
-      const typed = text.slice(0, ci + 1);
-      currentEl.innerHTML = `<span style="color:${color}">${typed}</span>`;
-
-      charIdx.current++;
-
-      if (charIdx.current >= text.length) {
-        lineIdx.current++;
-        charIdx.current = 0;
-        const delay = line.type === "cmd" ? 420 : 60;
-        timerRef.current = setTimeout(typeNext, delay);
-      } else {
-        const delay = line.type === "cmd" ? 48 : 9;
-        timerRef.current = setTimeout(typeNext, delay);
-      }
-    }
-
-    timerRef.current = setTimeout(typeNext, 900);
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, []);
+    return () => {
+      timers.forEach(clearTimeout);
+      clearTimeout(nextTimer);
+    };
+  }, [lines]);
 
   return (
-    <div
-      style={{
-        width: "min(680px, 90vw)",
-        border: "1px solid var(--border)",
-        background: "rgba(13,17,23,0.95)",
-        position: "relative",
-        zIndex: 1,
-      }}
-    >
-      {/* Title bar */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "0.5rem",
-          padding: "0.75rem 1rem",
-          borderBottom: "1px solid var(--border)",
-          background: "rgba(17,24,32,0.6)",
-        }}
-      >
-        <Dot color="#f87171" />
-        <Dot color="#facc15" />
-        <Dot color="#4ade80" />
-        <span
-          style={{
-            flex: 1,
-            textAlign: "center",
-            fontSize: "0.63rem",
-            color: "var(--muted)",
-            letterSpacing: "0.1em",
-          }}
-        >
-          void-cli · bash
-        </span>
+    <section className="void-console" aria-label="VoidPush live terminal preview">
+      <div className="void-console__header">
+        <div className="window-dots" aria-hidden="true">
+          <span className="dot red" />
+          <span className="dot yellow" />
+          <span className="dot green" />
+        </div>
+        <span className="void-console__title">relay session / encrypted git bundle</span>
+        <span className="void-console__state">LIVE</span>
       </div>
 
-      {/* Body */}
-      <div
-        ref={bodyRef}
-        style={{
-          padding: "1.25rem 1.5rem",
-          fontSize: "0.75rem",
-          lineHeight: 2,
-          minHeight: 200,
-          textAlign: "left",
-        }}
-      />
+      <div className="void-console__body">
+        <div className="void-console__lines">
+          {lines.slice(0, visible).map((line, index) => (
+            <div key={`${session}-${index}`} className={`terminal-line ${TONE_CLASS[line.tone]}`}>
+              {line.tone === "cmd" ? <span className="terminal-caret">$</span> : null}
+              <span>{line.text}</span>
+            </div>
+          ))}
+          <div className="terminal-line term-prompt">
+            <span>void@relay-0:~$</span>
+            <span className="cursor-blink" />
+          </div>
+        </div>
 
-      {/* Scanlines */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px)",
-          pointerEvents: "none",
-        }}
-      />
-    </div>
-  );
-}
+        <div className="relay-panel" aria-label="Relay path status">
+          {RELAYS.map((relay, index) => (
+            <div className="relay-node" key={relay.id}>
+              <div>
+                <span className="relay-node__id">{relay.id}</span>
+                <span className="relay-node__city">{relay.city}</span>
+              </div>
+              <div className="relay-node__meta">
+                <span>{relay.ms}ms</span>
+                <span>{relay.status}</span>
+              </div>
+              {index < RELAYS.length - 1 ? <span className="relay-link" aria-hidden="true" /> : null}
+            </div>
+          ))}
+        </div>
+      </div>
 
-function Dot({ color }: { color: string }) {
-  return (
-    <span style={{ width: 10, height: 10, borderRadius: "50%", background: color, display: "inline-block" }} />
+      <div className="void-console__footer">
+        <div>
+          <span className="metric-label">metadata removed</span>
+          <span className="metric-value">100%</span>
+        </div>
+        <div>
+          <span className="metric-label">identity TTL</span>
+          <span className="metric-value">72h</span>
+        </div>
+        <div>
+          <span className="metric-label">review mode</span>
+          <span className="metric-value">blind</span>
+        </div>
+      </div>
+    </section>
   );
 }

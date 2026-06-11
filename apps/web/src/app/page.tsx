@@ -7,7 +7,7 @@ import { ManifestoSection }   from "@/components/sections/ManifestoSection";
 import { HowItWorksSection }  from "@/components/sections/HowItWorksSection";
 import { FeaturesSection }    from "@/components/sections/FeaturesSection";
 import { CLIPreviewSection }  from "@/components/sections/CLIPreviewSection";
-import { AnonLogsSection }   from "@/components/sections/AnonLogsSection";
+import { AnonLogsSection }   from "@/components/sections/GhostLogsSection";
 import { InstallCTASection }  from "@/components/sections/InstallCTASection";
 
 // Floating ghost shapes (decorative, server-rendered)

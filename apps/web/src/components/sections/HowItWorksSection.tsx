@@ -1,5 +1,7 @@
 "use client";
 
+import { ProtocolScene3D } from "@/components/ui/ProtocolScene3D";
+
 const STEPS = [
   {
     num: "01 / init", icon: "👻", title: "Become Anonymous",
@@ -20,10 +22,17 @@ const STEPS = [
 
 export function HowItWorksSection() {
   return (
-    <section id="how" style={{ position: "relative", zIndex: 1, padding: "6rem 2rem", maxWidth: 1100, margin: "0 auto" }}>
-      <div className="s-tag">Protocol</div>
-      <h2 className="s-title reveal">Zero identity.<br />Full accountability.</h2>
-      <p className="s-desc reveal">Three steps between you and total anonymity. Your code gets judged. You don&apos;t.</p>
+    <section id="how" className="protocol-section">
+      <div className="protocol-intro">
+        <div className="protocol-copy">
+          <div className="s-tag">Protocol</div>
+          <h2 className="protocol-title reveal">Anonymous push.<br />Accountable code.</h2>
+          <p className="s-desc reveal">Three steps between you and total anonymity. Your code gets judged. You don&apos;t.</p>
+        </div>
+        <div className="protocol-object reveal">
+          <ProtocolScene3D />
+        </div>
+      </div>
 
       <div className="steps-grid">
         {STEPS.map((step) => (
@@ -41,16 +50,6 @@ export function HowItWorksSection() {
           </div>
         ))}
       </div>
-
-      <style>{`
-        .steps-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; margin-top: 4rem; }
-        @media(max-width:768px){ .steps-grid { grid-template-columns: 1fr; } }
-        .step-card { padding: 2.5rem 2rem; border: 1px solid var(--border); background: var(--bg2); position: relative; overflow: hidden; transition: all 0.3s; }
-        .step-card:hover { border-color: rgba(167,139,250,.4); background: var(--bg3); }
-        .step-card:hover .step-bar { transform: scaleX(1); }
-        .step-bar { position: absolute; top:0; left:0; right:0; height:2px; background: linear-gradient(90deg,var(--ghost2),var(--ghost)); transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease; }
-        .step-code { margin-top:1.25rem; padding:.75rem; background:var(--bg); border-left:2px solid var(--ghost2); font-size:.63rem; color:var(--muted); line-height:1.9; }
-      `}</style>
     </section>
   );
 }

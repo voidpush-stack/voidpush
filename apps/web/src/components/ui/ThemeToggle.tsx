@@ -19,30 +19,19 @@ export function ThemeToggle() {
     localStorage.setItem("ghost-theme", dark ? "dark" : "light");
   }, [dark, mounted]);
 
-  if (!mounted) return null;
+  if (!mounted) return <span className="theme-toggle theme-toggle--placeholder" aria-hidden="true" />;
 
   return (
     <button
+      className="theme-toggle"
       onClick={() => setDark(!dark)}
       title={dark ? "Switch to light mode" : "Switch to dark mode"}
-      style={{
-        background: "transparent",
-        border: "1px solid var(--border)",
-        color: "var(--muted)",
-        padding: "0.4rem 0.75rem",
-        fontFamily: "var(--mono)",
-        fontSize: "0.65rem",
-        cursor: "pointer",
-        letterSpacing: "0.08em",
-        transition: "all 0.2s",
-        display: "flex",
-        alignItems: "center",
-        gap: "0.4rem",
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--ghost)"; e.currentTarget.style.color = "var(--ghost)"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--muted)"; }}
+      aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
     >
-      {dark ? "◑ light" : "● dark"}
+      <span className="theme-toggle__track" aria-hidden="true">
+        <span className="theme-toggle__thumb" data-dark={dark ? "true" : "false"} />
+      </span>
+      <span>{dark ? "Light" : "Dark"}</span>
     </button>
   );
 }

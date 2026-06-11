@@ -1,22 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 
 const NAV_LINKS = [
-  { label: "Explore",     href: "/explore"     },
-  { label: "Showcase",    href: "/showcase"     },
-  { label: "Leaderboard", href: "/leaderboard"  },
-  { label: "Network",     href: "/network"      },
-  { label: "Blog",        href: "/blog"         },
-  { label: "Docs",        href: "/docs"         },
-  { label: "Org",         href: "/org"          },
+  { label: "Explore", href: "/explore" },
+  { label: "Showcase", href: "/showcase" },
+  { label: "Leaderboard", href: "/leaderboard" },
+  { label: "Network", href: "/network" },
+  { label: "Blog", href: "/blog" },
+  { label: "Docs", href: "/docs" },
+  { label: "Org", href: "/org" },
 ];
 
 export function Nav() {
-  const [scrolled,  setScrolled]  = useState(false);
-  const [menuOpen,  setMenuOpen]  = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -26,29 +26,13 @@ export function Nav() {
 
   return (
     <>
-      <nav style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "1rem 2.5rem",
-        borderBottom: "1px solid var(--border)",
-        background: scrolled ? "rgba(8,11,16,0.97)" : "rgba(8,11,16,0.82)",
-        backdropFilter: "blur(16px)",
-        transition: "background 0.3s",
-      }}>
-        {/* Logo */}
-        <Link href="/" style={{ textDecoration: "none" }}>
-          <span style={{
-            fontFamily: "var(--display)", fontWeight: 800, fontSize: "1rem",
-            color: "var(--text)", display: "flex", alignItems: "center",
-            gap: "0.6rem", letterSpacing: "-0.02em",
-          }}>
-            <VoidLogo />
-            VoidPush
-          </span>
+      <nav className={`site-nav ${scrolled ? "site-nav--scrolled" : ""}`}>
+        <Link href="/" className="site-nav__brand">
+          <VoidLogo />
+          <span>VoidPush</span>
         </Link>
 
-        {/* Desktop links */}
-        <ul className="nav-links" style={{ display: "flex", gap: "1.5rem", listStyle: "none", alignItems: "center" }}>
+        <ul className="nav-links">
           {NAV_LINKS.map(({ label, href }) => (
             <li key={label}>
               <Link href={href} className="nav-link">{label}</Link>
@@ -56,62 +40,46 @@ export function Nav() {
           ))}
         </ul>
 
-        {/* Right side */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <div className="nav-actions">
           <ThemeToggle />
-          <Link href="/dashboard" className="nav-link-secondary">dashboard</Link>
-          <Link href="/waitlist" className="nav-cta">[ join beta ]</Link>
+          <Link href="/dashboard" className="nav-link-secondary">Dashboard</Link>
+          <Link href="/waitlist" className="nav-cta">Join beta</Link>
           <button
             className="hamburger"
-            onClick={() => setMenuOpen(!menuOpen)}
-            style={{ display: "none", background: "transparent", border: "1px solid var(--border)", color: "var(--muted)", padding: "0.4rem 0.6rem", cursor: "pointer", fontFamily: "var(--mono)", fontSize: "0.75rem" }}>
-            {menuOpen ? "✕" : "☰"}
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+          >
+            {menuOpen ? "Close" : "Menu"}
           </button>
         </div>
       </nav>
 
-      {/* Mobile drawer */}
-      {menuOpen && (
-        <div style={{
-          position: "fixed", top: "57px", left: 0, right: 0, zIndex: 99,
-          background: "var(--bg2)", borderBottom: "1px solid var(--border)",
-          padding: "1rem 1.5rem", display: "flex", flexDirection: "column", gap: "0.75rem",
-        }}>
+      {menuOpen ? (
+        <div className="mobile-drawer">
           {NAV_LINKS.map(({ label, href }) => (
-            <Link key={label} href={href} onClick={() => setMenuOpen(false)}
-              style={{ color: "var(--muted)", textDecoration: "none", fontSize: "0.82rem", padding: "0.5rem 0", borderBottom: "1px solid var(--border2)", letterSpacing: "0.06em" }}>
+            <Link key={label} href={href} onClick={() => setMenuOpen(false)} className="mobile-drawer__link">
               {label}
             </Link>
           ))}
-          <Link href="/dashboard" onClick={() => setMenuOpen(false)}
-            style={{ color: "var(--teal)", textDecoration: "none", fontSize: "0.82rem", padding: "0.5rem 0", borderBottom: "1px solid var(--border2)" }}>
-            dashboard
+          <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="mobile-drawer__link mobile-drawer__link--accent">
+            Dashboard
           </Link>
-          <Link href="/waitlist" onClick={() => setMenuOpen(false)}
-            style={{ color: "var(--ghost)", textDecoration: "none", fontSize: "0.82rem", padding: "0.5rem 0", fontWeight: 700 }}>
-            → join beta
+          <Link href="/waitlist" onClick={() => setMenuOpen(false)} className="mobile-drawer__cta">
+            Join beta
           </Link>
         </div>
-      )}
-
-      <style>{`
-        .nav-link { color:var(--muted); text-decoration:none; font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; transition:color .2s; font-family:var(--mono); }
-        .nav-link:hover { color:var(--ghost); }
-        .nav-link-secondary { color:var(--muted); text-decoration:none; font-size:.68rem; letter-spacing:.08em; transition:color .2s; font-family:var(--mono); }
-        .nav-link-secondary:hover { color:var(--teal); }
-        .nav-cta { background:transparent; border:1px solid var(--ghost); color:var(--ghost); padding:.45rem 1rem; font-family:var(--mono); font-size:.7rem; letter-spacing:.05em; text-decoration:none; transition:all .2s; display:inline-block; white-space:nowrap; }
-        .nav-cta:hover { background:var(--ghost); color:var(--bg); }
-        @media(max-width:900px){ .nav-links { display:none !important; } .hamburger { display:block !important; } .nav-link-secondary { display:none; } }
-      `}</style>
+      ) : null}
     </>
   );
 }
 
 function VoidLogo() {
   return (
-    <span style={{ position: "relative", display: "inline-block", width: 22, height: 22, flexShrink: 0 }}>
-      <span style={{ display: "block", width: 22, height: 22, background: "var(--ghost)", borderRadius: "50% 50% 0 0" }} />
-      <span style={{ position: "absolute", bottom: -5, left: 0, right: 0, height: 7, background: "var(--ghost)", clipPath: "polygon(0 0,16.66% 100%,33.33% 0,50% 100%,66.66% 0,83.33% 100%,100% 0,100% 100%,0 100%)" }} />
+    <span className="void-logo" aria-hidden="true">
+      <span className="void-logo__core" />
+      <span className="void-logo__orbit void-logo__orbit--a" />
+      <span className="void-logo__orbit void-logo__orbit--b" />
+      <span className="void-logo__push" />
     </span>
   );
 }

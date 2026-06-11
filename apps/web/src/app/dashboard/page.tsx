@@ -56,6 +56,7 @@ export default function DashboardPage() {
   const [voidId, setVoidId] = useState("void_7f3a2b9c");
   const [ttlH,   setTtlH]   = useState(47);
   const [tab,    setTab]     = useState<"scores" | "relays" | "identity">("scores");
+  const [copiedCommand, setCopiedCommand] = useState<string | null>(null);
 
   // Tick TTL countdown
   useEffect(() => {
@@ -65,6 +66,18 @@ export default function DashboardPage() {
 
   const avgScore = (SCORE_HISTORY.reduce((s, r) => s + r.score, 0) / SCORE_HISTORY.length).toFixed(1);
   const healthyRelays = RELAY_HEALTH.filter((r) => r.status === "healthy").length;
+
+  function copyCommand(command: string) {
+    navigator.clipboard.writeText(command);
+    setCopiedCommand(command);
+    setTimeout(() => setCopiedCommand(null), 1800);
+  }
+
+  function rotateIdentity() {
+    setVoidId(`void_${Math.random().toString(16).slice(2, 10)}`);
+    setTtlH(72);
+    copyCommand("void init --link");
+  }
 
   return (
     <>
@@ -85,14 +98,16 @@ export default function DashboardPage() {
             </div>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               <button
+                onClick={() => copyCommand("void verify --json")}
                 style={{ padding: "0.6rem 1.25rem", background: "transparent", border: "1px solid var(--border)", color: "var(--muted)", fontFamily: "var(--mono)", fontSize: "0.72rem", cursor: "pointer", transition: "all 0.2s" }}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--ghost)"; e.currentTarget.style.color = "var(--ghost)"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--muted)"; }}>
-                void verify --json
+                {copiedCommand === "void verify --json" ? "copied verify cmd" : "void verify --json"}
               </button>
               <button
+                onClick={rotateIdentity}
                 style={{ padding: "0.6rem 1.25rem", background: "var(--ghost)", border: "none", color: "var(--bg)", fontFamily: "var(--mono)", fontSize: "0.72rem", fontWeight: 700, cursor: "pointer" }}>
-                void init --link
+                {copiedCommand === "void init --link" ? "identity rotated" : "void init --link"}
               </button>
             </div>
           </div>
@@ -235,7 +250,13 @@ export default function DashboardPage() {
                   <p style={{ fontSize: "0.75rem", color: "var(--muted)", lineHeight: 1.8, marginBottom: "1rem" }}>
                     Expire identity immediately. Cannot be undone.
                   </p>
-                  <button style={{ padding: "0.6rem 1.25rem", background: "transparent", border: "1px solid var(--red, #f87171)", color: "var(--red, #f87171)", fontFamily: "var(--mono)", fontSize: "0.72rem", cursor: "pointer" }}>
+                  <button
+                    onClick={() => {
+                      setTtlH(0);
+                      setVoidId("expired");
+                      copyCommand("void expire --force");
+                    }}
+                    style={{ padding: "0.6rem 1.25rem", background: "transparent", border: "1px solid var(--red, #f87171)", color: "var(--red, #f87171)", fontFamily: "var(--mono)", fontSize: "0.72rem", cursor: "pointer" }}>
                     void expire --force
                   </button>
                 </div>

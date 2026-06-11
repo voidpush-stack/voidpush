@@ -126,7 +126,7 @@ export default function PressPage() {
                 ].map(({ bg, label }) => (
                   <div key={label} style={{ background: bg, padding: "2rem", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1rem" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                      <GhostSVG color={label === "Light" ? "#7c3aed" : "#a78bfa"} />
+                      <VoidMark color={label === "Light" ? "#7c3aed" : "#a78bfa"} accent={label === "Light" ? "#0d9488" : "#2dd4bf"} />
                       <span style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "1.1rem", color: label === "Light" ? "#0f172a" : "#e2e8f0", letterSpacing: "-0.02em" }}>VoidPush</span>
                     </div>
                     <span style={{ fontSize: "0.6rem", color: label === "Light" ? "#64748b" : "#64748b", letterSpacing: "0.1em", textTransform: "uppercase" }}>{label}</span>
@@ -177,10 +177,13 @@ export default function PressPage() {
   );
 }
 
-function GhostSVG({ color }: { color: string }) {
+function VoidMark({ color, accent }: { color: string; accent: string }) {
   return (
-    <svg width="24" height="28" viewBox="0 0 24 28" fill={color}>
-      <path d="M12 0C5.373 0 0 5.373 0 12v16l4-4 4 4 4-4 4 4 4-4V12C24 5.373 18.627 0 12 0z" />
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <ellipse cx="16" cy="16" rx="13" ry="6.5" stroke={color} strokeOpacity="0.7" transform="rotate(28 16 16)" />
+      <ellipse cx="16" cy="16" rx="13" ry="6.5" stroke={accent} strokeOpacity="0.65" transform="rotate(-32 16 16)" />
+      <rect x="11" y="11" width="10" height="10" rx="2" fill={color} transform="rotate(45 16 16)" />
+      <circle cx="27" cy="16" r="2.4" fill={accent} />
     </svg>
   );
 }

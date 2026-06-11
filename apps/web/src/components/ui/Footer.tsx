@@ -1,32 +1,41 @@
-"use client";
-
 import Link from "next/link";
+
+const FOOTER_LINKS = [
+  { label: "GitHub", href: "https://github.com/voidpush-stack/voidpush", external: true },
+  { label: "X / Twitter", href: "https://x.com/voidpush_", external: true },
+  { label: "Docs", href: "/docs" },
+  { label: "Relays", href: "/network" },
+];
 
 export function Footer() {
   return (
-    <footer
-      style={{
-        borderTop: "1px solid var(--border)",
-        padding: "2rem 3rem",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        position: "relative",
-        zIndex: 1,
-        fontSize: "0.63rem",
-        color: "var(--muted)",
-      }}
-    >
+    <footer className="site-footer">
       <span>
-        👻 VoidPush · v0.1.0-alpha ·{" "}
+        VoidPush · v0.1.0-alpha ·{" "}
         <span style={{ color: "var(--ghost)" }}>anonymous by default</span>
       </span>
-      <span style={{ display: "flex", gap: "1rem" }}>
-        {["github", "docs", "relays", "x/twitter"].map((link) => (
-          <Link key={link} href="#" className="footer-link">{link}</Link>
+
+      <span className="site-footer__links">
+        {FOOTER_LINKS.map((link) => (
+          link.external ? (
+            <a
+              key={link.label}
+              href={link.href}
+              target="_blank"
+              rel="noreferrer"
+              className="footer-link"
+            >
+              {link.label}
+            </a>
+          ) : (
+            <Link key={link.label} href={link.href} className="footer-link">
+              {link.label}
+            </Link>
+          )
         ))}
       </span>
-      <span style={{ opacity: 0.35 }}>built in the dark</span>
+
+      <span style={{ opacity: 0.45 }}>built in the dark</span>
     </footer>
   );
 }
